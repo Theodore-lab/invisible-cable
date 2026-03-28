@@ -1,0 +1,22 @@
+name: invisible_cable
+description: "The Invisible Cable - Offline Radio Mesh Network for Android"
+publish_to: 'none'
+version: 0.1.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+  flutter: ">=3.3.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_p2p_connection: ^3.0.3     # Main Wi-Fi Direct plugin
+  permission_handler: ^11.3.1
+  cryptography: ^2.7.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+flutter:
+  uses-material-design: true
