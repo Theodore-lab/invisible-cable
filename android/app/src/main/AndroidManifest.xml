@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <!-- Invisible Cable - Radio Mesh Permissions -->
+    <!-- Invisible Cable Permissions for Wi-Fi Mesh -->
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
     <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
     <uses-permission android:name="android.permission.INTERNET" />
@@ -18,7 +18,7 @@
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
 
-        <!-- Fix for modern Flutter v2 embedding -->
+        <!-- Important: Force Flutter v2 embedding -->
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
