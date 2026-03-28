@@ -13,9 +13,18 @@ class InvisibleCableApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'The Invisible Cable',
-      theme: ThemeData.dark().copyWith(
-        primaryColor: Colors.blue,
-        scaffoldBackgroundColor: Colors.black,
+      theme: ThemeData(
+        primarySwatch: Colors.indigo,
+        scaffoldBackgroundColor: const Color(0xFFF8F9FA),
+        appBarTheme: const AppBarTheme(
+          backgroundColor: Colors.white,
+          foregroundColor: Colors.black87,
+          elevation: 1,
+        ),
+        cardTheme: CardTheme(
+          elevation: 2,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        ),
       ),
       home: const MeshHomePage(),
       debugShowCheckedModeBanner: false,
@@ -31,15 +40,14 @@ class MeshHomePage extends StatefulWidget {
 }
 
 class _MeshHomePageState extends State<MeshHomePage> {
-  final FlutterP2pConnection _flutterP2pConnection = FlutterP2pConnection();
+  final FlutterP2pConnection _p2p = FlutterP2pConnection();
   List<DiscoveredDevice> devices = [];
-  bool isDiscovering = false;
-  String status = "Ready - Tap Start Discovery";
+  String status = "Ready to connect with the church family";
 
   @override
   void initState() {
     super.initState();
-    _flutterP2pConnection.initialize();
+    _p2p.initialize();
   }
 
   Future<void> requestPermissions() async {
@@ -51,21 +59,19 @@ class _MeshHomePageState extends State<MeshHomePage> {
   }
 
   Future<void> startDiscovery() async {
-    setState(() {
-      isDiscovering = true;
-      status = "Discovering nearby devices...";
-    });
-
-    bool success = await _flutterP2pConnection.discover();
+    setState(() => status = "Looking for nearby phones...");
+    bool success = await _p2p.discover();
     if (success) {
-      _flutterP2pConnection.streamDiscoveredDevices().listen((List<DiscoveredDevice> foundDevices) {
+      _p2p.streamDiscoveredDevices().listen((found) {
         setState(() {
-          devices = foundDevices;
-          status = "Found ${devices.length} device(s)";
+          devices = found;
+          status = found.isEmpty 
+              ? "No devices found yet" 
+              : "Found ${found.length} device(s) nearby";
         });
       });
     } else {
-      setState(() => status = "Discovery failed. Try again.");
+      setState(() => status = "Discovery failed. Please try again.");
     }
   }
 
@@ -74,43 +80,79 @@ class _MeshHomePageState extends State<MeshHomePage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text("The Invisible Cable"),
-        backgroundColor: Colors.blueGrey[900],
+        centerTitle: true,
       ),
       body: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(20.0),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text(status, style: const TextStyle(fontSize: 16, color: Colors.white70)),
-            const SizedBox(height: 20),
+            Card(
+              child: Padding(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  children: [
+                    const Icon(Icons.connect_without_contact, size: 60, color: Colors.indigo),
+                    const SizedBox(height: 16),
+                    Text(
+                      status,
+                      style: const TextStyle(fontSize: 17),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+                ),
+              ),
+            ),
 
-            ElevatedButton(
+            const SizedBox(height: 28),
+
+            const Text("Choose an action", 
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
+
+            const SizedBox(height: 12),
+
+            ElevatedButton.icon(
               onPressed: () async {
                 await requestPermissions();
                 await startDiscovery();
               },
+              icon: const Icon(Icons.search),
+              label: const Text("🔍 Start Discovery", style: TextStyle(fontSize: 16)),
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blue,
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                minimumSize: const Size(double.infinity, 56),
+                backgroundColor: Colors.indigo,
               ),
-              child: const Text("🔍 Start Discovery", style: TextStyle(fontSize: 16)),
             ),
 
-            const SizedBox(height: 30),
-            const Text("Nearby Devices:", 
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
-            const SizedBox(height: 10),
+            const SizedBox(height: 12),
+
+            OutlinedButton.icon(
+              onPressed: () {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text("Host / Relay mode coming soon")),
+                );
+              },
+              icon: const Icon(Icons.wifi_tethering),
+              label: const Text("📡 Host Network (Become Relay)", style: TextStyle(fontSize: 16)),
+              style: OutlinedButton.styleFrom(
+                minimumSize: const Size(double.infinity, 56),
+              ),
+            ),
+
+            const SizedBox(height: 32),
+
+            const Text("Nearby Devices", 
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
+
+            const SizedBox(height: 8),
 
             Expanded(
               child: devices.isEmpty
-                  ? const Center(
+                  ? Center(
                       child: Text(
-                        "No devices found yet.\n\n"
-                        "Make sure:\n"
-                        "• Wi-Fi is turned ON on both phones\n"
-                        "• Another phone is also running the app and discovering",
+                        "No devices found yet.\n\nAsk others at the conference to open the app\nand tap 'Start Discovery'",
                         textAlign: TextAlign.center,
-                        style: TextStyle(color: Colors.white60),
+                        style: TextStyle(color: Colors.grey[600], height: 1.5),
                       ),
                     )
                   : ListView.builder(
@@ -118,21 +160,12 @@ class _MeshHomePageState extends State<MeshHomePage> {
                       itemBuilder: (context, index) {
                         final device = devices[index];
                         return Card(
-                          color: Colors.blueGrey[800],
                           margin: const EdgeInsets.only(bottom: 8),
                           child: ListTile(
-                            title: Text(device.deviceName ?? "Unknown Device",
-                                style: const TextStyle(color: Colors.white)),
-                            subtitle: Text("Address: ${device.deviceAddress}",
-                                style: const TextStyle(color: Colors.white70)),
-                            trailing: ElevatedButton(
-                              onPressed: () {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(content: Text("Connecting to ${device.deviceName ?? 'device'}... (coming soon)")),
-                                );
-                              },
-                              child: const Text("Connect"),
-                            ),
+                            leading: const Icon(Icons.phone_android, color: Colors.indigo),
+                            title: Text(device.deviceName ?? "Unknown Phone"),
+                            subtitle: Text(device.deviceAddress ?? ""),
+                            trailing: const Chip(label: Text("Connect")),
                           ),
                         );
                       },
