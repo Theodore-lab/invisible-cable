@@ -13,13 +13,15 @@
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
-    <!-- For future Admin features -->
-    <uses-permission android:name="android.permission.BIND_ACCESSIBILITY_SERVICE" />
-
     <application
         android:label="Invisible Cable"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
+
+        <!-- Fix for modern Flutter v2 embedding -->
+        <meta-data
+            android:name="flutterEmbedding"
+            android:value="2" />
 
         <activity
             android:name=".MainActivity"
@@ -39,9 +41,6 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
-
-        <!-- For Wi-Fi Direct and background services -->
-        <service android:name="androidx.core.app.JobIntentService" />
 
     </application>
 
