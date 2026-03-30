@@ -29,8 +29,11 @@ jobs:
       - name: Get Flutter dependencies
         run: flutter pub get
 
-      - name: Build Release APK
-        run: flutter build apk --release
+      - name: Build Release APK (Clean Build)
+        run: |
+          flutter clean
+          flutter pub get
+          flutter build apk --release --no-shrink
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
